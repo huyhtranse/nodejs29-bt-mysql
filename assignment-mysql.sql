@@ -1,5 +1,5 @@
-CREATE DATABASE assignment;
-USE assignment;
+CREATE DATABASE bt_nodejs_orm;
+USE bt_nodejs_orm;
 
 -- create tables
 CREATE TABLE users (
@@ -14,7 +14,12 @@ CREATE TABLE order_food (
     food_id INT,
     amount VARCHAR(100),
     code_food VARCHAR(100),
-    arr_sub_id VARCHAR(100)
+    arr_sub_id VARCHAR(100),
+
+    PRIMARY KEY (user_id, food_id),
+    
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (food_id) REFERENCES food(food_id)
 );
 
 CREATE TABLE restaurant (
@@ -27,15 +32,22 @@ CREATE TABLE restaurant (
 CREATE TABLE rate_res (
 	user_id INT,
     res_id INT,
-	FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (res_id) REFERENCES restaurant(res_id),
     amount INT,
-    date_rate DATETIME
+    date_rate DATETIME,
+    comment VARCHAR(500),
+
+    PRIMARY KEY (user_id, res_id),
+
+	FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (res_id) REFERENCES restaurant(res_id)
 );
 CREATE TABLE like_res (
 	user_id INT,
     res_id INT,
     date_like DATETIME,
+    status VARCHAR(10),
+
+    PRIMARY KEY (user_id, res_id),
 
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (res_id) REFERENCES restaurant(res_id)
@@ -47,17 +59,22 @@ CREATE TABLE food (
     image VARCHAR(100),
     price FLOAT,
     descr VARCHAR(100),
-    type_id INT 
+    type_id INT,
+    
+    FOREIGN KEY (type_id) REFERENCES food_type(type_id)
 );
 CREATE TABLE food_type (
     type_id INT AUTO_INCREMENT PRIMARY KEY,
     tye_name VARCHAR(100)
 );
+
 CREATE TABLE sub_food (
     sub_id INT AUTO_INCREMENT PRIMARY KEY,
     sub_name VARCHAR(100),
     sub_price FLOAT,
-    food_id INT
+    food_id INT,
+    
+    FOREIGN KEY (food_id) REFERENCES food(food_id)
 );
 
 -- insert data
@@ -92,29 +109,29 @@ VALUES
 	('8', 'Banh mi', 'https://image/vn/banhmi', '15', 'Banh mi heo quay', '2'),
 	('9', 'Khoai lang', 'https://image/vn/khoailang', '10', 'Khoai lang mo', '4');
     
-INSERT INTO `assignment`.`food_type` (`type_id`, `tye_name`) VALUES ('1', 'Thuc uong');
-INSERT INTO `assignment`.`food_type` (`type_id`, `tye_name`) VALUES ('2', 'Thuc an nhanh');
-INSERT INTO `assignment`.`food_type` (`type_id`, `tye_name`) VALUES ('3', 'Mon nuoc');
-INSERT INTO `assignment`.`food_type` (`type_id`, `tye_name`) VALUES ('4', 'An vat');
-INSERT INTO `assignment`.`food_type` (`type_id`, `tye_name`) VALUES ('5', 'Chay');
+INSERT INTO `food_type` (`type_id`, `tye_name`) VALUES ('1', 'Thuc uong');
+INSERT INTO `food_type` (`type_id`, `tye_name`) VALUES ('2', 'Thuc an nhanh');
+INSERT INTO `food_type` (`type_id`, `tye_name`) VALUES ('3', 'Mon nuoc');
+INSERT INTO `food_type` (`type_id`, `tye_name`) VALUES ('4', 'An vat');
+INSERT INTO `food_type` (`type_id`, `tye_name`) VALUES ('5', 'Chay');
 
-INSERT INTO like_res (user_id, res_id, date_like)
+INSERT INTO like_res (user_id, res_id, date_like, status)
 VALUES
-	(1, 1, '2023-03-14 09:00:00'),
-    (1, 2, '2023-03-14 09:00:00'),
-    (1, 3, '2023-03-14 09:00:00'),
-    (2, 2, '2023-03-14 09:00:00'),
-    (2, 3, '2023-03-14 09:00:00'),
-    (3, 5, '2023-03-14 09:00:00'),
-    (2, 1, '2023-03-14 09:00:00'),
-    (3, 4, '2023-03-14 09:00:00'),
-    (3, 1, '2023-03-14 09:00:00'),
-    (4, 3, '2023-03-14 09:00:00'),
-    (4, 5, '2023-03-14 09:00:00'),
-    (8, 1, '2023-03-14 09:00:00'),
-    (7, 3, '2023-03-14 09:00:00'),
-    (7, 1, '2023-03-14 09:00:00'),
-    (3, 3, '2023-03-14 09:00:00');
+	(1, 1, '2023-03-14 09:00:00', 'like'),
+    (1, 2, '2023-03-14 09:00:00', 'unlike'),
+    (1, 3, '2023-03-14 09:00:00', 'like'),
+    (2, 2, '2023-03-14 09:00:00', 'like'),
+    (2, 3, '2023-03-14 09:00:00', 'like'),
+    (3, 5, '2023-03-14 09:00:00', 'unlike'),
+    (2, 1, '2023-03-14 09:00:00', 'like'),
+    (3, 4, '2023-03-14 09:00:00', 'like'),
+    (3, 1, '2023-03-14 09:00:00', 'unlike'),
+    (4, 3, '2023-03-14 09:00:00', 'unlike'),
+    (4, 5, '2023-03-14 09:00:00', 'like'),
+    (8, 1, '2023-03-14 09:00:00', 'unlike'),
+    (7, 3, '2023-03-14 09:00:00', 'like'),
+    (7, 1, '2023-03-14 09:00:00', 'like'),
+    (3, 3, '2023-03-14 09:00:00', 'unlike');
     
 INSERT INTO order_food (user_id, food_id, amount, code_food, arr_sub_id)
 VALUES
@@ -125,22 +142,22 @@ VALUES
     (3, 5, 5, '', ''),
     (3, 8, 10, '', ''),
     (3, 9, 10, '', '[1, 2, 3]'),
-    (3, 10, 10, '', '');
+    (3, 3, 10, '', '');
     
-INSERT INTO rate_res (user_id, res_id, amount, date_rate)
+INSERT INTO rate_res (user_id, res_id, amount, date_rate, comment)
 VALUES
-	(1, 2, 4, '2023-03-14 09:00:00'),
-    (1, 3, 5, '2023-03-14 09:00:00'),
-    (2, 1, 3, '2023-03-14 09:00:00'),
-    (2, 3, 3, '2023-03-14 09:00:00');
+	(1, 2, 4, '2023-03-14 09:00:00', 'good food'),
+    (1, 3, 5, '2023-03-14 09:00:00', 'poor topping'),
+    (2, 1, 3, '2023-03-14 09:00:00', 'excellent'),
+    (2, 3, 3, '2023-03-14 09:00:00', 'not worth price');
 
-INSERT INTO `assignment`.`sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('1', 'Thit them', '5', '4');
-INSERT INTO `assignment`.`sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('2', 'Bun them', '5', '5');
-INSERT INTO `assignment`.`sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('3', 'Nuoc da', '2', '8');
-INSERT INTO `assignment`.`sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('4', 'Nem', '7', '1');
-INSERT INTO `assignment`.`sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('5', 'Cha', '10', '2');
-INSERT INTO `assignment`.`sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('6', 'Suon', '10', '3');
-INSERT INTO `assignment`.`sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('7', 'Rau', '5', '10');
+INSERT INTO `sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('1', 'Thit them', '5', '4');
+INSERT INTO `sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('2', 'Bun them', '5', '5');
+INSERT INTO `sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('3', 'Nuoc da', '2', '5');
+INSERT INTO `sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('4', 'Nem', '7', '1');
+INSERT INTO `sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('5', 'Cha', '10', '2');
+INSERT INTO `sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('6', 'Suon', '10', '5');
+INSERT INTO `sub_food` (`sub_id`, `sub_name`, `sub_price`, `food_id`) VALUES ('7', 'Rau', '5', '2');
 
 --  1. tim 5 nguoi da like nha hang nhieu nhat
 SELECT users.user_id, users.full_name, count(1) AS likes
@@ -181,3 +198,8 @@ SELECT users.user_id, users.full_name, users.email
     WHERE order_food.amount IS NULL AND like_res.date_like IS NULL AND rate_res.date_rate IS NULL;
 
 -- 5. Tinh trung binh sub_food cua mot food
+SELECT food.food_id, food.food_name, COUNT(NULLIF(sub_id,0)) AS ave_sub_food
+FROM food
+LEFT JOIN sub_food
+ON food.food_id = sub_food.food_id
+GROUP by food.food_id
